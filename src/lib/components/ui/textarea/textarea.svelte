@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
-	import type { InputEvents } from './index.js';
+	import type { HTMLTextareaAttributes } from 'svelte/elements';
+	import type { TextareaEvents } from './index.js';
 	import { cn } from '$lib/utils.js';
 
-	type $$Props = HTMLInputAttributes;
-	type $$Events = InputEvents;
+	type $$Props = HTMLTextareaAttributes;
+	type $$Events = TextareaEvents;
 
 	let className: $$Props['class'] = undefined;
 	export let value: $$Props['value'] = undefined;
@@ -15,9 +15,9 @@
 	export let readonly: $$Props['readonly'] = undefined;
 </script>
 
-<input
+<textarea
 	class={cn(
-		'border-input bg-background ring-offset-background placeholder:text-muted-foreground flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:border-primary',
+		'border-input bg-background ring-offset-background placeholder:text-muted-foreground flex min-h-[40px] w-full rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:border-primary',
 		className
 	)}
 	bind:value
@@ -26,17 +26,13 @@
 	on:change
 	on:click
 	on:focus
-	on:focusin
-	on:focusout
 	on:keydown
 	on:keypress
 	on:keyup
 	on:mouseover
 	on:mouseenter
 	on:mouseleave
-	on:mousemove
 	on:paste
 	on:input
-	on:wheel|passive
 	{...$$restProps}
-/>
+></textarea>

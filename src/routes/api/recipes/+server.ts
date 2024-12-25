@@ -35,7 +35,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			found = [insertedIngredient];
 		}
 
-		newRecipeIngredients.push({ ingredientId: found[0].id, quantity: ingredient.quantity });
+		newRecipeIngredients.push({
+			ingredientId: found[0].id,
+			quantity: ingredient.quantity,
+			unit: ingredient.unit
+		});
 	}
 
 	const [recipe] = await db

@@ -4,6 +4,7 @@ import { relations } from 'drizzle-orm';
 interface RecipeIngredient {
 	ingredientId: number;
 	quantity: number;
+	unit: string;
 }
 
 export const ingredients = pgTable('ingredients', {
