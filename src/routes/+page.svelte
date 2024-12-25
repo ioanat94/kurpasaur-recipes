@@ -1,11 +1,13 @@
 <script lang="ts">
-	import * as Card from '$lib/components/ui/card';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import Button from '$lib/components/ui/button/button.svelte';
 
+	let isConfirmingDelete = $state(false);
+
 	type Recipe = {
+		id: number;
 		name: string;
 		ingredients: { name: string; quantity: number; unit: string }[];
 		directions: string[];
@@ -27,6 +29,19 @@
 			console.log('Recipes:', data);
 		} else {
 			console.error('Error fetching recipes:', await response.text());
+		}
+	}
+
+	async function deleteRecipe(id: number) {
+		const response = await fetch(`/api/recipes/${id}`, {
+			method: 'DELETE'
+		});
+
+		if (response.ok) {
+			console.log('Recipe deleted:', await response.json());
+			getAllRecipes();
+		} else {
+			console.error('Error deleting recipe:', await response.text());
 		}
 	}
 
@@ -101,13 +116,33 @@
 							</div>
 						</div>
 
-						<AlertDialog.Footer class="flex gap-2">
-							<Button variant="outline" class="px-2"
-								><img src="/edit.png" alt="Edit button" width={20} /></Button
-							>
-							<Button variant="destructive" class="px-2"
-								><img src="/delete.png" alt="Edit button" width={20} /></Button
-							>
+						<AlertDialog.Footer class="flex items-center gap-2">
+							{#if isConfirmingDelete}
+								Do you really want to delete this recipe?
+								<AlertDialog.Cancel
+									class="p-0 bg-[#dc2626] w-min border-none rounded-lg"
+									on:click={() => {
+										deleteRecipe(recipe.id);
+										isConfirmingDelete = false;
+									}}
+									><Button variant="destructive" class="px-3">Yes</Button>
+								</AlertDialog.Cancel>
+								<Button
+									variant="outline"
+									class="px-3 text-primary"
+									on:click={() => (isConfirmingDelete = false)}>No</Button
+								>
+							{:else}
+								<Button variant="outline" class="px-2"
+									><img src="/edit.png" alt="Edit button" width={20} /></Button
+								>
+								<Button
+									variant="destructive"
+									class="px-2"
+									on:click={() => (isConfirmingDelete = true)}
+									><img src="/delete.png" alt="Edit button" width={20} /></Button
+								>
+							{/if}
 						</AlertDialog.Footer>
 					</AlertDialog.Content>
 				</AlertDialog.Root>
