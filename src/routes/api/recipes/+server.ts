@@ -1,10 +1,20 @@
 import type { RequestHandler } from './$types';
-import { ingredients, recipes } from '../../../db/schema';
+import { ingredients, ingredientsToRecipes, recipes } from '../../../db/schema';
 import { db } from '../../../db';
 import { sql } from 'drizzle-orm';
 
 export const GET: RequestHandler = async () => {
-	const allRecipes = await db.select().from(recipes);
+	const allRecipes = await db
+		.select({
+			id: recipes.id,
+			name: recipes.name,
+			directions: recipes.directions,
+			ingredients: sql`json_agg(json_build_object('ingredientId', ${ingredientsToRecipes.ingredientId}, 'name', ${ingredients.name}, 'quantity', ${ingredientsToRecipes.quantity}, 'unit', ${ingredientsToRecipes.unit}))`
+		})
+		.from(recipes)
+		.leftJoin(ingredientsToRecipes, sql`${recipes.id} = ${ingredientsToRecipes.recipeId}`)
+		.leftJoin(ingredients, sql`${ingredientsToRecipes.ingredientId} = ${ingredients.id}`)
+		.groupBy(recipes.id);
 
 	return new Response(JSON.stringify(allRecipes), {
 		headers: {
@@ -46,18 +56,28 @@ export const POST: RequestHandler = async ({ request }) => {
 		.insert(recipes)
 		.values({
 			name: newRecipe.name,
-			directions: newRecipe.directions,
-			ingredients: newRecipeIngredients
+			directions: newRecipe.directions
 		})
 		.returning({
 			id: recipes.id,
 			name: recipes.name,
-			directions: recipes.directions,
-			ingredients: recipes.ingredients
+			directions: recipes.directions
 		})
 		.execute();
 
-	console.log('recipe', recipe);
+	for (const ingredient of newRecipeIngredients) {
+		try {
+			const result = await db.insert(ingredientsToRecipes).values({
+				recipeId: recipe.id,
+				ingredientId: ingredient.ingredientId,
+				quantity: ingredient.quantity,
+				unit: ingredient.unit
+			});
+			console.log('Inserted into recipeIngredients:', result);
+		} catch (error) {
+			console.error('Error inserting into recipeIngredients:', error);
+		}
+	}
 
 	return new Response(JSON.stringify(recipe), {
 		headers: {
