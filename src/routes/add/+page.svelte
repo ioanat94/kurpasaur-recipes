@@ -7,7 +7,8 @@
 	let newRecipe = $state({
 		name: '',
 		ingredients: [{ name: '', quantity: 0, unit: '' }],
-		directions: ['']
+		directions: [''],
+		imageUrl: ''
 	});
 
 	async function addRecipe(event: Event) {
@@ -33,7 +34,8 @@
 		newRecipe = {
 			name: '',
 			ingredients: [{ name: '', quantity: 0, unit: '' }],
-			directions: ['']
+			directions: [''],
+			imageUrl: ''
 		};
 	}
 
@@ -52,28 +54,48 @@
 	<h1 class="text-2xl">Add new recipe</h1>
 	<form onsubmit={addRecipe} class="flex flex-col gap-6 max-w-[765px]">
 		<div class="flex w-full flex-col gap-4 bg-primary-foreground p-4 rounded-md">
-			<Label for="name" class="text-md">Recipe Name</Label>
-			<Input
-				type="text"
-				name="name"
-				class="max-w-[678px]"
-				onchange={(event) => {
-					newRecipe = {
-						...newRecipe,
-						name: (event.target as HTMLInputElement).value
-					};
-				}}
-				bind:value={newRecipe.name}
-			/>
+			<Label class="text-md">Recipe Details</Label>
+
+			<div class="flex flex-col gap-1">
+				<Label for="name" class="text-sm">Name</Label>
+				<Input
+					type="text"
+					name="name"
+					class="max-w-[678px]"
+					onchange={(event) => {
+						newRecipe = {
+							...newRecipe,
+							name: (event.target as HTMLInputElement).value
+						};
+					}}
+					bind:value={newRecipe.name}
+				/>
+			</div>
+
+			<div class="flex flex-col gap-1">
+				<Label for="image-url" class="text-sm">Image URL</Label>
+				<Input
+					type="text"
+					name="image-url"
+					class="max-w-[678px]"
+					onchange={(event) => {
+						newRecipe = {
+							...newRecipe,
+							imageUrl: (event.target as HTMLInputElement).value
+						};
+					}}
+					bind:value={newRecipe.imageUrl}
+				/>
+			</div>
 		</div>
 
 		<div class="flex flex-col gap-4 bg-primary-foreground p-4 rounded-md">
-			<Label for="ingredients" class="text-md">Ingredients</Label>
+			<Label class="text-md">Ingredients</Label>
 			{#each newRecipe.ingredients as ingredient, index}
 				<div class="flex gap-4">
 					<span class="mt-8">•</span>
 					<div class="flex flex-col gap-1">
-						<Label for="ingredients" class="text-sm">Name</Label>
+						<Label for="ingredient-name" class="text-sm">Name</Label>
 						<Input
 							type="text"
 							name="ingredient-name"
@@ -87,7 +109,7 @@
 					</div>
 
 					<div class="flex flex-col gap-1">
-						<Label for="ingredients" class="text-sm">Quantity</Label>
+						<Label for="quantity" class="text-sm">Quantity</Label>
 						<Input
 							type="number"
 							name="quantity"
@@ -103,7 +125,7 @@
 					</div>
 
 					<div class="flex flex-col gap-1">
-						<Label for="ingredients" class="text-sm">Unit</Label>
+						<Label for="unit" class="text-sm">Unit</Label>
 						<Input
 							type="text"
 							name="unit"

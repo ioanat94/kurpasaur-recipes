@@ -9,7 +9,8 @@ export const ingredients = pgTable('ingredients', {
 export const recipes = pgTable('recipes', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
 	name: varchar({ length: 255 }).notNull(),
-	directions: text().notNull().array()
+	directions: text().notNull().array(),
+	imageUrl: varchar({ length: 255 })
 });
 
 export const ingredientsToRecipes = pgTable(
