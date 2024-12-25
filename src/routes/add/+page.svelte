@@ -6,9 +6,10 @@
 
 	let newRecipe = $state({
 		name: '',
-		ingredients: [{ name: '', quantity: 0, unit: '' }],
+		ingredients: [{ name: '', quantity: '', unit: '' }],
 		directions: [''],
-		imageUrl: ''
+		imageUrl: '',
+		source: ''
 	});
 
 	async function addRecipe(event: Event) {
@@ -33,14 +34,15 @@
 	function resetForm() {
 		newRecipe = {
 			name: '',
-			ingredients: [{ name: '', quantity: 0, unit: '' }],
+			ingredients: [{ name: '', quantity: '', unit: '' }],
 			directions: [''],
-			imageUrl: ''
+			imageUrl: '',
+			source: ''
 		};
 	}
 
 	function addIngredient() {
-		newRecipe.ingredients.push({ name: '', quantity: 0, unit: '' });
+		newRecipe.ingredients.push({ name: '', quantity: '', unit: '' });
 		newRecipe = { ...newRecipe };
 	}
 
@@ -69,6 +71,22 @@
 						};
 					}}
 					bind:value={newRecipe.name}
+				/>
+			</div>
+
+			<div class="flex flex-col gap-1">
+				<Label for="source" class="text-sm">Source</Label>
+				<Input
+					type="text"
+					name="source"
+					class="max-w-[678px]"
+					onchange={(event) => {
+						newRecipe = {
+							...newRecipe,
+							source: (event.target as HTMLInputElement).value
+						};
+					}}
+					bind:value={newRecipe.source}
 				/>
 			</div>
 
@@ -111,13 +129,11 @@
 					<div class="flex flex-col gap-1">
 						<Label for="quantity" class="text-sm">Quantity</Label>
 						<Input
-							type="number"
+							type="text"
 							name="quantity"
 							class="w-min"
 							onchange={(event) => {
-								newRecipe.ingredients[index].quantity = parseInt(
-									(event.target as HTMLInputElement).value
-								);
+								newRecipe.ingredients[index].quantity = (event.target as HTMLInputElement).value;
 								newRecipe = { ...newRecipe };
 							}}
 							bind:value={newRecipe.ingredients[index].quantity}

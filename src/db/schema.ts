@@ -10,7 +10,8 @@ export const recipes = pgTable('recipes', {
 	id: integer().primaryKey().generatedAlwaysAsIdentity(),
 	name: varchar({ length: 255 }).notNull(),
 	directions: text().notNull().array(),
-	imageUrl: varchar({ length: 255 })
+	imageUrl: varchar({ length: 255 }),
+	source: varchar({ length: 255 })
 });
 
 export const ingredientsToRecipes = pgTable(
@@ -22,8 +23,8 @@ export const ingredientsToRecipes = pgTable(
 		recipeId: integer('recipe_id')
 			.notNull()
 			.references(() => recipes.id),
-		quantity: integer().notNull(),
-		unit: varchar({ length: 50 }).notNull()
+		quantity: varchar({ length: 50 }),
+		unit: varchar({ length: 50 })
 	},
 	(t) => [primaryKey({ columns: [t.ingredientId, t.recipeId] })]
 );

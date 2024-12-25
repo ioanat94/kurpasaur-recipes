@@ -10,6 +10,7 @@ export const GET: RequestHandler = async () => {
 			name: recipes.name,
 			directions: recipes.directions,
 			imageUrl: recipes.imageUrl,
+			source: recipes.source,
 			ingredients: sql`json_agg(json_build_object('ingredientId', ${ingredientsToRecipes.ingredientId}, 'name', ${ingredients.name}, 'quantity', ${ingredientsToRecipes.quantity}, 'unit', ${ingredientsToRecipes.unit}))`
 		})
 		.from(recipes)
@@ -58,13 +59,15 @@ export const POST: RequestHandler = async ({ request }) => {
 		.values({
 			name: newRecipe.name,
 			directions: newRecipe.directions,
-			imageUrl: newRecipe.imageUrl
+			imageUrl: newRecipe.imageUrl,
+			source: newRecipe.source
 		})
 		.returning({
 			id: recipes.id,
 			name: recipes.name,
 			directions: recipes.directions,
-			imageUrl: recipes.imageUrl
+			imageUrl: recipes.imageUrl,
+			source: recipes.source
 		})
 		.execute();
 
