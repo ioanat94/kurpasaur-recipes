@@ -35,8 +35,6 @@
 		if (response.ok) {
 			const data = await response.json();
 			recipes.set(data.recipesByName);
-
-			console.log('Recipes:', data);
 		} else {
 			console.error('Error fetching recipes:', await response.text());
 		}
@@ -48,7 +46,6 @@
 		});
 
 		if (response.ok) {
-			console.log('Recipe deleted:', await response.json());
 			getAllRecipes();
 		} else {
 			console.error('Error deleting recipe:', await response.text());
@@ -65,7 +62,6 @@
 		});
 
 		if (response.ok) {
-			console.log('Recipe updated:', await response.json());
 			isEditting = false;
 			getAllRecipes();
 		} else {
@@ -83,7 +79,6 @@
 		});
 
 		if (response.ok) {
-			console.log('Note added:', await response.json());
 			getAllRecipes();
 		} else {
 			console.error('Error adding note:', await response.text());
@@ -96,7 +91,6 @@
 		});
 
 		if (response.ok) {
-			console.log('Note deleted:', await response.json());
 			getAllRecipes();
 		} else {
 			console.error('Error deleting note:', await response.text());
@@ -113,7 +107,6 @@
 		});
 
 		if (response.ok) {
-			console.log('Note updated:', await response.json());
 			getAllRecipes();
 		} else {
 			console.error('Error updating note:', await response.text());
@@ -121,8 +114,6 @@
 	}
 
 	onMount(() => {
-		console.log('mounted');
-
 		getAllRecipes();
 	});
 </script>

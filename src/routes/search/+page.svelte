@@ -31,8 +31,6 @@
 			const data = await response.json();
 
 			searchResults = data;
-
-			console.log('Search results:', searchResults);
 		} else {
 			console.error('Error fetching search results:', await response.text());
 		}

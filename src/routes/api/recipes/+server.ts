@@ -119,8 +119,6 @@ export const GET: RequestHandler = async ({ url }) => {
 		notes: filterDuplicates(recipe.notes as Note[], 'id')
 	}));
 
-	console.log(JSON.stringify(recipesByName, null, 2));
-
 	return new Response(
 		JSON.stringify({
 			recipesByName,
@@ -182,13 +180,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	for (const ingredient of newRecipeIngredients) {
 		try {
-			const result = await db.insert(ingredientsToRecipes).values({
+			await db.insert(ingredientsToRecipes).values({
 				recipeId: recipe.id,
 				ingredientId: ingredient.ingredientId,
 				quantity: ingredient.quantity,
 				unit: ingredient.unit
 			});
-			console.log('Inserted into recipeIngredients:', result);
 		} catch (error) {
 			console.error('Error inserting into recipeIngredients:', error);
 		}

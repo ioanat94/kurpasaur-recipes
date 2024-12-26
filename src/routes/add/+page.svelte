@@ -21,7 +21,6 @@
 		});
 
 		if (response.ok) {
-			console.log('Recipe added:', await response.json());
 			resetForm();
 		} else {
 			console.error('Error adding recipe:', await response.text());
