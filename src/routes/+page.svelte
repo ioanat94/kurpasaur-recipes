@@ -3,8 +3,10 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import RecipeForm from '$lib/components/recipe-form.svelte';
 
 	let isConfirmingDelete = $state(false);
+	let isEditting = $state(false);
 
 	type Recipe = {
 		id: number;
@@ -45,6 +47,24 @@
 		}
 	}
 
+	async function editRecipe(recipe: Recipe) {
+		const response = await fetch(`/api/recipes/${recipe.id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(recipe)
+		});
+
+		if (response.ok) {
+			console.log('Recipe updated:', await response.json());
+			isEditting = false;
+			getAllRecipes();
+		} else {
+			console.error('Error updating recipe:', await response.text());
+		}
+	}
+
 	onMount(() => {
 		console.log('mounted');
 
@@ -82,68 +102,72 @@
 							>X</AlertDialog.Cancel
 						>
 
-						<div class="flex items-center">
-							<p class="text-xl font-bold">{recipe.name}</p>
-							{#if recipe.source}
-								<Button variant="ghost" class="px-2 hover:bg-primary hover:opacity-60"
-									><a
-										aria-label="Link to source"
-										href={recipe.source}
-										target="_blank"
-										rel="noopener noreferrer"
-										><img src="/source.png" alt="Edit button" width={20} /></a
-									></Button
-								>
-							{/if}
-						</div>
-
-						<div class="flex flex-col gap-4">
-							<div>
-								<p class="text-lg underline underline-offset-4 font-semibold">Ingredients</p>
-								{#each recipe.ingredients as ingredient}
-									<p>• {ingredient.quantity} {ingredient.unit} {ingredient.name}</p>
-								{/each}
+						{#if isEditting}
+							<RecipeForm {recipe} handleSubmit={() => editRecipe(recipe)} bind:isEditting />
+						{:else}
+							<div class="flex items-center">
+								<p class="text-xl font-bold">{recipe.name}</p>
+								{#if recipe.source}
+									<Button variant="ghost" class="px-2 hover:bg-primary hover:opacity-60"
+										><a
+											aria-label="Link to source"
+											href={recipe.source}
+											target="_blank"
+											rel="noopener noreferrer"
+											><img src="/source.png" alt="Edit button" width={20} /></a
+										></Button
+									>
+								{/if}
 							</div>
 
 							<div class="flex flex-col gap-4">
-								<p class="text-lg underline underline-offset-4 font-semibold">Instructions</p>
-								{#each recipe.directions as direction, index}
-									<p class="flex gap-2">
-										<span class="border rounded-full py-0 px-1.5 h-min">{index + 1}</span
-										>{direction}
-									</p>
-								{/each}
-							</div>
-						</div>
+								<div>
+									<p class="text-lg underline underline-offset-4 font-semibold">Ingredients</p>
+									{#each recipe.ingredients as ingredient}
+										<p>• {ingredient.quantity} {ingredient.unit} {ingredient.name}</p>
+									{/each}
+								</div>
 
-						<AlertDialog.Footer class="flex items-center gap-2">
-							{#if isConfirmingDelete}
-								Do you really want to delete this recipe?
-								<AlertDialog.Cancel
-									class="p-0 bg-[#dc2626] w-min border-none rounded-lg"
-									on:click={() => {
-										deleteRecipe(recipe.id);
-										isConfirmingDelete = false;
-									}}
-									><Button variant="destructive" class="px-3">Yes</Button>
-								</AlertDialog.Cancel>
-								<Button
-									variant="outline"
-									class="px-3 text-primary"
-									on:click={() => (isConfirmingDelete = false)}>No</Button
-								>
-							{:else}
-								<Button variant="outline" class="px-2"
-									><img src="/edit.png" alt="Edit button" width={20} /></Button
-								>
-								<Button
-									variant="destructive"
-									class="px-2"
-									on:click={() => (isConfirmingDelete = true)}
-									><img src="/delete.png" alt="Edit button" width={20} /></Button
-								>
-							{/if}
-						</AlertDialog.Footer>
+								<div class="flex flex-col gap-4">
+									<p class="text-lg underline underline-offset-4 font-semibold">Instructions</p>
+									{#each recipe.directions as direction, index}
+										<p class="flex gap-2">
+											<span class="border rounded-full py-0 px-1.5 h-min">{index + 1}</span
+											>{direction}
+										</p>
+									{/each}
+								</div>
+							</div>
+
+							<AlertDialog.Footer class="flex items-center gap-2">
+								{#if isConfirmingDelete}
+									Do you really want to delete this recipe?
+									<AlertDialog.Cancel
+										class="p-0 bg-[#dc2626] w-min border-none rounded-lg"
+										on:click={() => {
+											deleteRecipe(recipe.id);
+											isConfirmingDelete = false;
+										}}
+										><Button variant="destructive" class="px-3">Yes</Button>
+									</AlertDialog.Cancel>
+									<Button
+										variant="outline"
+										class="px-3 text-primary"
+										on:click={() => (isConfirmingDelete = false)}>No</Button
+									>
+								{:else}
+									<Button variant="outline" class="px-2" on:click={() => (isEditting = true)}
+										><img src="/edit.png" alt="Edit button" width={20} /></Button
+									>
+									<Button
+										variant="destructive"
+										class="px-2"
+										on:click={() => (isConfirmingDelete = true)}
+										><img src="/delete.png" alt="Edit button" width={20} /></Button
+									>
+								{/if}
+							</AlertDialog.Footer>
+						{/if}
 					</AlertDialog.Content>
 				</AlertDialog.Root>
 			{/each}
