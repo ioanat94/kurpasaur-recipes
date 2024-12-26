@@ -5,6 +5,10 @@
 	let { children } = $props();
 </script>
 
+<svelte:head>
+	<link rel="icon" type="image/png" href="./favicon.png" />
+</svelte:head>
+
 <div
 	class="dark bg-background text-secondary-foreground grid grid-cols-[60px_1fr] gap-x-6 min-h-screen font-nunito"
 >
@@ -14,6 +18,9 @@
 		>
 		<Button class="w-max m-0 p-y px-2" aria-label="Add" variant="ghost"
 			><a href="/add"><img src="/add.png" width="24px" alt="Add icon" /></a></Button
+		>
+		<Button class="w-max m-0 p-y px-2" aria-label="Search" variant="ghost"
+			><a href="/search"><img src="/search.png" width="24px" alt="Search icon" /></a></Button
 		>
 	</div>
 

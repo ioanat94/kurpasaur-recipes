@@ -4,6 +4,7 @@
 	import { writable } from 'svelte/store';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import RecipeForm from '$lib/components/recipe-form.svelte';
+	import RecipeCard from '$lib/components/recipe-card.svelte';
 
 	let isConfirmingDelete = $state(false);
 	let isEditting = $state(false);
@@ -26,7 +27,7 @@
 
 		if (response.ok) {
 			const data = await response.json();
-			recipes.set(data);
+			recipes.set(data.recipesByName);
 
 			console.log('Recipes:', data);
 		} else {
@@ -79,20 +80,8 @@
 		{#if $recipes.length > 0}
 			{#each $recipes as recipe}
 				<AlertDialog.Root>
-					<AlertDialog.Trigger
-						class="border border-border w-[250px] rounded-lg flex flex-col items-center hover:opacity-80"
-					>
-						{#if recipe.imageUrl}
-							<img src={recipe.imageUrl} alt={recipe.name} class="w-[250px] rounded-t-lg" />
-						{:else}
-							<img src="./placeholder_food.png" alt={recipe.name} class="w-[250px] rounded-t-lg" />
-						{/if}
-
-						<div class="h-full min-h-[40px] flex items-center justify-center">
-							<h2 class="text-lg w-[230px] text-ellipsis overflow-hidden text-nowrap">
-								{recipe.name}
-							</h2>
-						</div>
+					<AlertDialog.Trigger>
+						<RecipeCard {recipe} />
 					</AlertDialog.Trigger>
 					<AlertDialog.Content
 						class="bg-primary text-primary-foreground max-h-[80%] max-w-[50%] overflow-auto"
