@@ -14,6 +14,24 @@ export const recipes = pgTable('recipes', {
 	source: varchar({ length: 255 })
 });
 
+export const notes = pgTable('notes', {
+	id: integer().primaryKey().generatedAlwaysAsIdentity(),
+	content: text().notNull()
+});
+
+export const ingredientsRelations = relations(ingredients, ({ many }) => ({
+	recipes: many(ingredientsToRecipes)
+}));
+
+export const recipesRelations = relations(recipes, ({ many }) => ({
+	ingredients: many(ingredientsToRecipes),
+	notes: many(recipeToNotes)
+}));
+
+export const notesRelations = relations(notes, ({ one }) => ({
+	recipes: one(recipeToNotes)
+}));
+
 export const ingredientsToRecipes = pgTable(
 	'ingredients_recipes',
 	{
@@ -29,13 +47,18 @@ export const ingredientsToRecipes = pgTable(
 	(t) => [primaryKey({ columns: [t.ingredientId, t.recipeId] })]
 );
 
-export const ingredientsRelations = relations(ingredients, ({ many }) => ({
-	recipes: many(ingredientsToRecipes)
-}));
-
-export const recipesRelations = relations(recipes, ({ many }) => ({
-	users: many(ingredientsToRecipes)
-}));
+export const recipeToNotes = pgTable(
+	'recipe_notes',
+	{
+		recipeId: integer('recipe_id')
+			.notNull()
+			.references(() => recipes.id),
+		noteId: integer('note_id')
+			.notNull()
+			.references(() => notes.id)
+	},
+	(t) => [primaryKey({ columns: [t.recipeId, t.noteId] })]
+);
 
 export const ingredientsToRecipesRelations = relations(ingredientsToRecipes, ({ one }) => ({
 	ingredient: one(ingredients, {
@@ -45,5 +68,16 @@ export const ingredientsToRecipesRelations = relations(ingredientsToRecipes, ({ 
 	recipe: one(recipes, {
 		fields: [ingredientsToRecipes.recipeId],
 		references: [recipes.id]
+	})
+}));
+
+export const recipeToNotesRelations = relations(recipeToNotes, ({ one }) => ({
+	recipe: one(recipes, {
+		fields: [recipeToNotes.recipeId],
+		references: [recipes.id]
+	}),
+	note: one(notes, {
+		fields: [recipeToNotes.noteId],
+		references: [notes.id]
 	})
 }));

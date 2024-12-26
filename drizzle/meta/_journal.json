@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1735130717228,
-      "tag": "0000_uneven_red_shift",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1735131314242,
-      "tag": "0001_last_mandroid",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1735135854529,
-      "tag": "0002_fresh_lady_deathstrike",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1735137445113,
-      "tag": "0003_dark_blob",
+      "when": 1735211500895,
+      "tag": "0000_icy_wong",
       "breakpoints": true
     }
   ]

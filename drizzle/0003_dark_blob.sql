@@ -1,1 +1,0 @@
-ALTER TABLE "ingredients_recipes" ALTER COLUMN "quantity" SET DATA TYPE varchar(50);

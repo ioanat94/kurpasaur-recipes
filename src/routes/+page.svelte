@@ -5,9 +5,15 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import RecipeForm from '$lib/components/recipe-form.svelte';
 	import RecipeCard from '$lib/components/recipe-card.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
 
 	let isConfirmingDelete = $state(false);
 	let isEditting = $state(false);
+	let isShowingNotes = $state(false);
+	let isAddingNote = $state(false);
+	let newNoteContent = $state('');
+	let noteToBeDeleted = $state<number>();
+	let noteToBeEditted = $state<number>();
 
 	type Recipe = {
 		id: number;
@@ -16,6 +22,7 @@
 		directions: string[];
 		imageUrl?: string;
 		source?: string;
+		notes?: { id: number; content: string }[];
 	};
 
 	let recipes = writable<Recipe[]>([]);
@@ -66,6 +73,53 @@
 		}
 	}
 
+	async function addNote(recipeId: number) {
+		const response = await fetch(`/api/notes`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ content: newNoteContent, recipeId })
+		});
+
+		if (response.ok) {
+			console.log('Note added:', await response.json());
+			getAllRecipes();
+		} else {
+			console.error('Error adding note:', await response.text());
+		}
+	}
+
+	async function deleteNote(id: number) {
+		const response = await fetch(`/api/notes/${id}`, {
+			method: 'DELETE'
+		});
+
+		if (response.ok) {
+			console.log('Note deleted:', await response.json());
+			getAllRecipes();
+		} else {
+			console.error('Error deleting note:', await response.text());
+		}
+	}
+
+	async function editNote(id: number, content: string) {
+		const response = await fetch(`/api/notes/${id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ content })
+		});
+
+		if (response.ok) {
+			console.log('Note updated:', await response.json());
+			getAllRecipes();
+		} else {
+			console.error('Error updating note:', await response.text());
+		}
+	}
+
 	onMount(() => {
 		console.log('mounted');
 
@@ -111,7 +165,7 @@
 
 							<div class="flex flex-col gap-4">
 								<div>
-									<p class="text-lg underline underline-offset-4 font-semibold">Ingredients</p>
+									<p class="text-lg underline underline-offset-4 font-semibold pb-2">Ingredients</p>
 									{#each recipe.ingredients as ingredient}
 										<p>• {ingredient.quantity} {ingredient.unit} {ingredient.name}</p>
 									{/each}
@@ -127,6 +181,77 @@
 									{/each}
 								</div>
 							</div>
+
+							{#if isShowingNotes}
+								<div>
+									<p class="text-lg underline underline-offset-4 font-semibold pb-2">Notes</p>
+									{#if recipe.notes && recipe.notes.length > 0 && recipe.notes[0].id}
+										<div class="flex flex-col gap-2">
+											{#each recipe.notes as note}
+												<div class="flex items-center gap-2">
+													{#if noteToBeEditted === note.id}
+														<Input
+															type="text"
+															placeholder="Edit note..."
+															class="border border-primary rounded-lg p-2 w-full text-primary"
+															value={note.content}
+															on:input={(e) =>
+																(note.content = (e.target as HTMLInputElement).value)}
+														/>
+														<Button
+															variant="positive"
+															class="px-2"
+															on:click={() => {
+																editNote(note.id, note.content);
+																noteToBeEditted = undefined;
+															}}>Save</Button
+														>
+														<Button
+															variant="outline"
+															class="px-2 text-primary"
+															on:click={() => (noteToBeEditted = undefined)}>Cancel</Button
+														>
+													{:else}
+														<p>• {note.content}</p>
+
+														{#if noteToBeDeleted === note.id}
+															<div class="flex items-center gap-2">
+																<p>Delete note?</p>
+																<Button
+																	variant="destructive"
+																	class="px-2 h-2"
+																	on:click={() => {
+																		noteToBeDeleted = undefined;
+																		deleteNote(note.id);
+																	}}>Yes</Button
+																>
+																<Button
+																	variant="outline"
+																	class="px-2 text-primary h-2"
+																	on:click={() => (noteToBeDeleted = undefined)}>No</Button
+																>
+															</div>
+														{:else}
+															<Button
+																variant="outline"
+																class="px-2 text-primary h-2"
+																on:click={() => (noteToBeEditted = note.id)}>Edit</Button
+															>
+															<Button
+																variant="destructive"
+																class="px-2 h-2"
+																on:click={() => (noteToBeDeleted = note.id)}>Delete</Button
+															>
+														{/if}
+													{/if}
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<p>No notes found.</p>
+									{/if}
+								</div>
+							{/if}
 
 							<AlertDialog.Footer class="flex items-center gap-2">
 								{#if isConfirmingDelete}
@@ -144,16 +269,54 @@
 										class="px-3 text-primary"
 										on:click={() => (isConfirmingDelete = false)}>No</Button
 									>
+								{:else if isAddingNote}
+									<div class="flex gap-2 grow">
+										<Input
+											type="text"
+											placeholder="Add a note..."
+											class="border border-primary rounded-lg p-2 w-full text-primary"
+											on:input={(e) => (newNoteContent = (e.target as HTMLInputElement).value)}
+										/>
+										<Button
+											variant="positive"
+											class="px-2"
+											on:click={() => {
+												addNote(recipe.id);
+												isAddingNote = false;
+											}}>Add</Button
+										>
+										<Button
+											variant="outline"
+											class="px-2 text-primary"
+											on:click={() => (isAddingNote = false)}>Cancel</Button
+										>
+									</div>
 								{:else}
-									<Button variant="outline" class="px-2" on:click={() => (isEditting = true)}
-										><img src="/edit.png" alt="Edit button" width={20} /></Button
-									>
-									<Button
-										variant="destructive"
-										class="px-2"
-										on:click={() => (isConfirmingDelete = true)}
-										><img src="/delete.png" alt="Edit button" width={20} /></Button
-									>
+									<div class="flex justify-between w-full">
+										<div class="flex gap-2">
+											<Button
+												variant="outline"
+												class="px-2 text-primary"
+												on:click={() => (isShowingNotes = !isShowingNotes)}
+												>{isShowingNotes ? 'Hide' : 'Show'} notes</Button
+											><Button
+												variant="positive"
+												class="px-2"
+												on:click={() => (isAddingNote = true)}>Add note</Button
+											>
+										</div>
+										<div class="flex gap-2">
+											<Button variant="outline" class="px-2" on:click={() => (isEditting = true)}
+												><img src="/edit.png" alt="Edit button" width={20} /></Button
+											>
+											<Button
+												variant="destructive"
+												class="px-2"
+												on:click={() => (isConfirmingDelete = true)}
+												><img src="/delete.png" alt="Delete button" width={20} /></Button
+											>
+										</div>
+									</div>
 								{/if}
 							</AlertDialog.Footer>
 						{/if}
