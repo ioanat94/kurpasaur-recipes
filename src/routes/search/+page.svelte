@@ -72,7 +72,7 @@
 		{#if searchResults.recipesByName.length > 0}
 			<div class="flex flex-col gap-4 border-b border-primary-foreground pb-4">
 				<p class="text-xl">Recipes with "{searchTerm}" in the title</p>
-				<div>
+				<div class="flex gap-4">
 					{#each searchResults.recipesByName as recipe}
 						<RecipeCard {recipe} />
 					{/each}
@@ -83,12 +83,16 @@
 		{#if searchResults.recipesByIngredient.length > 0}
 			<div class="flex flex-col gap-4">
 				<p class="text-xl">Recipes with "{searchTerm}" in the ingredients</p>
-				<div>
+				<div class="flex gap-4">
 					{#each searchResults.recipesByIngredient as recipe}
 						<RecipeCard {recipe} />
 					{/each}
 				</div>
 			</div>
+		{/if}
+
+		{#if searchTerm.length > 2 && searchResults.recipesByName.length === 0 && searchResults.recipesByIngredient.length === 0}
+			<p class="text-lg">No results found</p>
 		{/if}
 	</div>
 </div>

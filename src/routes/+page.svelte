@@ -6,8 +6,6 @@
 	import RecipeForm from '$lib/components/recipe-form.svelte';
 	import RecipeCard from '$lib/components/recipe-card.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import Label from '$lib/components/ui/label/label.svelte';
-	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 
 	let isConfirmingDelete = writable(false);
 	let isEditting = writable(false);
@@ -118,24 +116,13 @@
 		getAllRecipes();
 	});
 
-	function addIngredient(recipe: Recipe) {
-		recipe.ingredients.push({ name: '', quantity: '', unit: '' });
-		recipes.update((r) => r.map((rec) => (rec.id === recipe.id ? { ...recipe } : rec)));
+	function handleEditRecipeSubmit(recipe: Recipe) {
+		editRecipe(recipe);
+		isEditting.set(false);
 	}
 
-	function removeIngredient(recipe: Recipe, index: number) {
-		recipe.ingredients.splice(index, 1);
-		recipes.update((r) => r.map((rec) => (rec.id === recipe.id ? { ...recipe } : rec)));
-	}
-
-	function addDirection(recipe: Recipe) {
-		recipe.directions.push('');
-		recipes.update((r) => r.map((rec) => (rec.id === recipe.id ? { ...recipe } : rec)));
-	}
-
-	function removeDirection(recipe: Recipe, index: number) {
-		recipe.directions.splice(index, 1);
-		recipes.update((r) => r.map((rec) => (rec.id === recipe.id ? { ...recipe } : rec)));
+	function handleCancelEdit() {
+		isEditting.set(false);
 	}
 </script>
 
@@ -158,106 +145,12 @@
 						>
 
 						{#if $isEditting}
-							<form
-								on:submit|preventDefault={() => editRecipe(recipe)}
-								class="dark flex flex-col gap-6 max-w-[765px]"
-							>
-								<div class="flex w-full flex-col gap-4 bg-primary-foreground p-4 rounded-md">
-									<Label class="text-md">Recipe Details</Label>
-
-									<div class="flex flex-col gap-1">
-										<Label for="name" class="text-sm">Name</Label>
-										<Input type="text" name="name" class="max-w-[678px]" bind:value={recipe.name} />
-									</div>
-
-									<div class="flex flex-col gap-1">
-										<Label for="source" class="text-sm">Source</Label>
-										<Input
-											type="text"
-											name="source"
-											class="max-w-[678px]"
-											bind:value={recipe.source}
-										/>
-									</div>
-
-									<div class="flex flex-col gap-1">
-										<Label for="imageUrl" class="text-sm">Image URL</Label>
-										<Input
-											type="text"
-											name="imageUrl"
-											class="max-w-[678px]"
-											bind:value={recipe.imageUrl}
-										/>
-									</div>
-
-									<div class="flex flex-col gap-2">
-										<Label for="ingredients" class="text-sm">Ingredients</Label>
-										{#each recipe.ingredients as ingredient, index}
-											<div class="flex gap-2 items-center">
-												<Input type="text" placeholder="Name" bind:value={ingredient.name} />
-												<Input
-													type="text"
-													placeholder="Quantity"
-													bind:value={ingredient.quantity}
-												/>
-												<Input type="text" placeholder="Unit" bind:value={ingredient.unit} />
-												<Button
-													type="button"
-													on:click={() => removeIngredient(recipe, index)}
-													class="px-2 mt-0 min-w-[60px]"
-													variant="ghost"
-													disabled={recipe.ingredients.length === 1}
-												>
-													<img src="/remove.png" width="24px" alt="Remove icon" />
-												</Button>
-											</div>
-										{/each}
-										<Button
-											on:click={() => addIngredient(recipe)}
-											class="w-min"
-											variant="secondary"
-										>
-											Add Ingredient
-										</Button>
-									</div>
-
-									<div class="flex flex-col gap-2">
-										<Label for="directions" class="text-sm">Directions</Label>
-										{#each recipe.directions as direction, index}
-											<div class="flex gap-1.5 items-center">
-												<span class="min-w-14 text-sm">Step {index + 1}:</span>
-												<Textarea
-													name="direction"
-													class="max-w-[615px]"
-													bind:value={direction}
-													placeholder="Direction"
-												/>
-												<Button
-													type="button"
-													on:click={() => removeDirection(recipe, index)}
-													class="px-2 mt-0"
-													variant="ghost"
-													disabled={recipe.directions.length === 1}
-												>
-													<img src="/remove.png" width="24px" alt="Remove icon" />
-												</Button>
-											</div>
-										{/each}
-										<Button on:click={() => addDirection(recipe)} class="w-min" variant="secondary">
-											Add Step
-										</Button>
-									</div>
-
-									<div class="flex gap-2">
-										<Button type="submit" variant="positive" class="w-min">Save</Button>
-										<Button
-											variant="outline"
-											class="w-min text-primary"
-											on:click={() => isEditting.set(false)}>Cancel</Button
-										>
-									</div>
-								</div>
-							</form>
+							<RecipeForm
+								{recipe}
+								isEditting={$isEditting}
+								onSubmit={handleEditRecipeSubmit}
+								onCancel={handleCancelEdit}
+							/>
 						{:else}
 							<div class="flex items-center">
 								<p class="text-xl font-bold">{recipe.name}</p>
@@ -337,15 +230,13 @@
 																	}}>Yes</Button
 																>
 																<Button
-																	variant="outline"
-																	class="px-2 text-primary h-2"
+																	class="px-2 text-primary h-2 bg-secondary hover:bg-secondary hover:opacity-90"
 																	on:click={() => noteToBeDeleted.set(undefined)}>No</Button
 																>
 															</div>
 														{:else}
 															<Button
-																variant="outline"
-																class="px-2 text-primary h-2"
+																class="px-2 text-primary h-2 bg-secondary hover:bg-secondary hover:opacity-90"
 																on:click={() => noteToBeEditted.set(note.id)}>Edit</Button
 															>
 															<Button

@@ -1,25 +1,31 @@
 <script lang="ts">
-	import Button from './ui/button/button.svelte';
-	import Input from './ui/input/input.svelte';
-	import Label from './ui/label/label.svelte';
-	import Textarea from './ui/textarea/textarea.svelte';
+	import Input from '$lib/components/ui/input/input.svelte';
+	import Label from '$lib/components/ui/label/label.svelte';
+	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
-	type RecipeFormProps = {
-		recipe: {
-			name: string;
-			ingredients: { name: string; quantity: number | string; unit: string }[];
-			directions: string[];
-			imageUrl?: string;
-			source?: string;
-		};
-		handleSubmit: (event: Event) => void;
-		isEditting?: boolean;
+	type Recipe = {
+		id: number;
+		name: string;
+		ingredients: { name: string; quantity: string; unit: string }[];
+		directions: string[];
+		imageUrl?: string;
+		source?: string;
+		notes?: { id: number; content: string }[];
 	};
 
-	let { recipe, handleSubmit, isEditting = $bindable() }: RecipeFormProps = $props();
+	export let recipe: Recipe;
+	export let isEditting: boolean;
+	export let onSubmit: (recipe: Recipe) => void;
+	export let onCancel: () => void;
 
 	function addIngredient() {
 		recipe.ingredients.push({ name: '', quantity: '', unit: '' });
+		recipe = { ...recipe };
+	}
+
+	function removeIngredient(index: number) {
+		recipe.ingredients.splice(index, 1);
 		recipe = { ...recipe };
 	}
 
@@ -27,173 +33,113 @@
 		recipe.directions.push('');
 		recipe = { ...recipe };
 	}
+
+	function removeDirection(index: number) {
+		recipe.directions.splice(index, 1);
+		recipe = { ...recipe };
+	}
+
+	function handleSubmit(event: Event) {
+		event.preventDefault();
+		onSubmit(recipe);
+	}
 </script>
 
-<form onsubmit={handleSubmit} class="dark flex flex-col gap-6 max-w-[765px]">
+<form on:submit={handleSubmit} class="dark flex flex-col gap-6 max-w-[765px]">
 	<div class="flex w-full flex-col gap-4 bg-primary-foreground p-4 rounded-md">
-		<Label class="text-md">Recipe Details</Label>
-
 		<div class="flex flex-col gap-1">
 			<Label for="name" class="text-sm">Name</Label>
-			<Input
-				type="text"
-				name="name"
-				class="max-w-[678px]"
-				onchange={(event) => {
-					recipe = {
-						...recipe,
-						name: (event.target as HTMLInputElement).value
-					};
-				}}
-				bind:value={recipe.name}
-			/>
+			<Input type="text" name="name" class="max-w-[678px]" bind:value={recipe.name} />
 		</div>
 
 		<div class="flex flex-col gap-1">
 			<Label for="source" class="text-sm">Source</Label>
-			<Input
-				type="text"
-				name="source"
-				class="max-w-[678px]"
-				onchange={(event) => {
-					recipe = {
-						...recipe,
-						source: (event.target as HTMLInputElement).value
-					};
-				}}
-				bind:value={recipe.source}
-			/>
+			<Input type="text" name="source" class="max-w-[678px]" bind:value={recipe.source} />
 		</div>
 
 		<div class="flex flex-col gap-1">
-			<Label for="image-url" class="text-sm">Image URL</Label>
-			<Input
-				type="text"
-				name="image-url"
-				class="max-w-[678px]"
-				onchange={(event) => {
-					recipe = {
-						...recipe,
-						imageUrl: (event.target as HTMLInputElement).value
-					};
-				}}
-				bind:value={recipe.imageUrl}
-			/>
+			<Label for="imageUrl" class="text-sm">Image URL</Label>
+			<Input type="text" name="imageUrl" class="max-w-[678px]" bind:value={recipe.imageUrl} />
 		</div>
-	</div>
 
-	<div class="flex flex-col gap-4 bg-primary-foreground p-4 rounded-md">
-		<Label class="text-md">Ingredients</Label>
-		{#each recipe.ingredients as ingredient, index}
-			<div class="flex gap-4">
-				<span class="mt-8">•</span>
-				<div class="flex flex-col gap-1">
-					<Label for="ingredient-name" class="text-sm">Name</Label>
-					<Input
-						type="text"
-						name="ingredient-name"
-						class="w-min"
-						onchange={(event) => {
-							recipe.ingredients[index].name = (event.target as HTMLInputElement).value;
-							recipe = { ...recipe };
-						}}
-						bind:value={recipe.ingredients[index].name}
-					/>
-				</div>
-
-				<div class="flex flex-col gap-1">
-					<Label for="quantity" class="text-sm">Quantity</Label>
-					<Input
-						type="text"
-						name="quantity"
-						class="w-min"
-						onchange={(event) => {
-							recipe.ingredients[index].quantity = (event.target as HTMLInputElement).value;
-							recipe = { ...recipe };
-						}}
-						bind:value={recipe.ingredients[index].quantity}
-					/>
-				</div>
-
-				<div class="flex flex-col gap-1">
-					<Label for="unit" class="text-sm">Unit</Label>
-					<Input
-						type="text"
-						name="unit"
-						class="w-min"
-						onchange={(event) => {
-							recipe.ingredients[index].unit = (event.target as HTMLInputElement).value;
-
-							recipe = { ...recipe };
-						}}
-						bind:value={recipe.ingredients[index].unit}
-					/>
-				</div>
-
-				<Button
-					type="button"
-					on:click={() => {
-						recipe.ingredients.splice(index, 1);
-						recipe = { ...recipe };
-					}}
-					class="px-2 mt-6"
-					variant="ghost"
-					disabled={recipe.ingredients.length === 1}
-				>
-					<img src="/remove.png" width="24px" alt="Remove icon" />
-				</Button>
+		<div class="flex flex-col gap-1">
+			<Label for="ingredients" class="text-sm">Ingredients</Label>
+			<div class="flex flex-col gap-3">
+				{#each recipe.ingredients as ingredient, index}
+					<div class="flex gap-2 items-center">
+						<Input
+							type="text"
+							placeholder="Name"
+							class="max-w-[220px]"
+							bind:value={ingredient.name}
+						/>
+						<Input
+							type="text"
+							placeholder="Quantity"
+							class="max-w-[220px]"
+							bind:value={ingredient.quantity}
+						/>
+						<Input
+							type="text"
+							placeholder="Unit"
+							class="max-w-[220px]"
+							bind:value={ingredient.unit}
+						/>
+						<Button
+							type="button"
+							on:click={() => removeIngredient(index)}
+							class="px-2"
+							variant="ghost"
+							disabled={recipe.ingredients.length === 1}
+						>
+							<img src="/remove.png" width="24px" alt="Remove icon" />
+						</Button>
+					</div>
+				{/each}
 			</div>
-		{/each}
-		<Button type="button" on:click={addIngredient} class="w-min" variant="secondary"
-			>Add Ingredient</Button
-		>
-	</div>
 
-	<div class="flex w-full flex-col gap-4 bg-primary-foreground p-4 rounded-md">
-		<Label for="directions" class="text-md">Directions</Label>
-		{#each recipe.directions as direction, index}
-			<div class="flex gap-1.5 items-center">
-				<span class="min-w-14 text-sm">Step {index + 1}:</span>
-				<Textarea
-					name="direction"
-					class="max-w-[615px]"
-					rows={1}
-					on:change={(event) => {
-						recipe.directions[index] = (event.target as HTMLTextAreaElement).value;
-						recipe = { ...recipe };
-					}}
-					bind:value={recipe.directions[index]}
-				></Textarea>
+			<Button type="button" on:click={addIngredient} class="w-min mt-3" variant="secondary">
+				Add Ingredient
+			</Button>
+		</div>
 
-				<Button
-					type="button"
-					on:click={() => {
-						recipe.directions.splice(index, 1);
-						recipe = { ...recipe };
-					}}
-					class="px-2 ml-2.5"
-					variant="ghost"
-					disabled={recipe.directions.length === 1}
-				>
-					<img src="/remove.png" width="24px" alt="Remove icon" />
-				</Button>
+		<div class="flex flex-col gap-1">
+			<Label for="directions" class="text-sm">Directions</Label>
+			<div class="flex flex-col gap-3">
+				{#each recipe.directions as direction, index}
+					<div class="flex gap-1.5 items-center">
+						<span class="min-w-14 text-sm">Step {index + 1}:</span>
+						<Textarea
+							name="direction"
+							class="max-w-[615px]"
+							bind:value={direction}
+							placeholder="Direction"
+						/>
+						<Button
+							type="button"
+							on:click={() => removeDirection(index)}
+							class="px-2"
+							variant="ghost"
+							disabled={recipe.directions.length === 1}
+						>
+							<img src="/remove.png" width="24px" alt="Remove icon" />
+						</Button>
+					</div>
+				{/each}
 			</div>
-		{/each}
-		<Button type="button" on:click={addDirection} class="w-min" variant="secondary">Add Step</Button
-		>
-	</div>
 
-	<div class="flex gap-4">
-		<Button type="submit" class="w-min font-bold" variant="positive">Save recipe</Button>
+			<Button type="button" on:click={addDirection} class="w-min mt-3" variant="secondary">
+				Add Direction
+			</Button>
+		</div>
 
-		{#if isEditting}
-			<Button
-				type="button"
-				class="w-min font-bold"
-				on:click={() => {
-					isEditting = false;
-				}}>Cancel</Button
-			>
-		{/if}
+		<div class="flex gap-2">
+			<Button type="submit" variant="positive" class="w-min">Save</Button>
+			{#if isEditting}
+				<Button type="button" class="w-min text-primary-foreground" on:click={onCancel}
+					>Cancel</Button
+				>
+			{/if}
+		</div>
 	</div>
 </form>
