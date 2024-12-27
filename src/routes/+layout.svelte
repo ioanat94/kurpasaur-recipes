@@ -1,8 +1,14 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
+	import NavButton from '$lib/components/nav-button.svelte';
 	import '../app.css';
 
 	let { children } = $props();
+
+	const navButtons = [
+		{ label: 'Home', imageSrc: '/home.png', imageAlt: 'Home icon', href: '/' },
+		{ label: 'Add', imageSrc: '/add.png', imageAlt: 'Add icon', href: '/add' },
+		{ label: 'Search', imageSrc: '/search.png', imageAlt: 'Search icon', href: '/search' }
+	];
 </script>
 
 <svelte:head>
@@ -13,15 +19,9 @@
 	class="dark bg-background text-secondary-foreground grid grid-cols-[60px_1fr] gap-x-6 min-h-screen font-nunito"
 >
 	<div class="flex flex-col items-center gap-4 pt-3 border-r border-primary-foreground">
-		<Button class="w-max m-0 p-y px-2" aria-label="Home" variant="ghost"
-			><a href="/"><img src="/home.png" width="24px" alt="Home icon" /></a></Button
-		>
-		<Button class="w-max m-0 p-y px-2" aria-label="Add" variant="ghost"
-			><a href="/add"><img src="/add.png" width="24px" alt="Add icon" /></a></Button
-		>
-		<Button class="w-max m-0 p-y px-2" aria-label="Search" variant="ghost"
-			><a href="/search"><img src="/search.png" width="24px" alt="Search icon" /></a></Button
-		>
+		{#each navButtons as { label, imageSrc, imageAlt, href }}
+			<NavButton {label} {imageSrc} {imageAlt} {href} />
+		{/each}
 	</div>
 
 	<div>

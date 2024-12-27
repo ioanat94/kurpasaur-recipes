@@ -3,16 +3,7 @@
 	import Label from '$lib/components/ui/label/label.svelte';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-
-	type Recipe = {
-		id: number;
-		name: string;
-		ingredients: { name: string; quantity: string; unit: string }[];
-		directions: string[];
-		imageUrl?: string;
-		source?: string;
-		notes?: { id: number; content: string }[];
-	};
+	import type { Recipe } from '$lib/fetchHandlers';
 
 	export let recipe: Recipe;
 	export let isEditting: boolean;

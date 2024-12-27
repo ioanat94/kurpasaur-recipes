@@ -2,10 +2,11 @@
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import RecipeForm from '$lib/components/recipe-form.svelte';
 	import RecipeCard from '$lib/components/recipe-card.svelte';
-	import Input from '$lib/components/ui/input/input.svelte';
+	import { getAllRecipes, editRecipe, type Recipe } from '$lib/fetchHandlers';
+	import RecipeDetails from '$lib/components/recipe-details.svelte';
+	import RecipeDetailsFooter from '$lib/components/recipe-details-footer.svelte';
 
 	let isConfirmingDelete = writable(false);
 	let isEditting = writable(false);
@@ -15,114 +16,52 @@
 	let noteToBeDeleted = writable<number | undefined>();
 	let noteToBeEditted = writable<number | undefined>();
 
-	type Recipe = {
-		id: number;
-		name: string;
-		ingredients: { name: string; quantity: string; unit: string }[];
-		directions: string[];
-		imageUrl?: string;
-		source?: string;
-		notes?: { id: number; content: string }[];
-	};
-
 	let recipes = writable<Recipe[]>([]);
 
-	async function getAllRecipes() {
-		const response = await fetch('/api/recipes', {
-			method: 'GET'
-		});
-
-		if (response.ok) {
-			const data = await response.json();
-			recipes.set(data.recipesByName);
-		} else {
-			console.error('Error fetching recipes:', await response.text());
-		}
-	}
-
-	async function deleteRecipe(id: number) {
-		const response = await fetch(`/api/recipes/${id}`, {
-			method: 'DELETE'
-		});
-
-		if (response.ok) {
-			getAllRecipes();
-		} else {
-			console.error('Error deleting recipe:', await response.text());
-		}
-	}
-
-	async function editRecipe(recipe: Recipe) {
-		const response = await fetch(`/api/recipes/${recipe.id}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(recipe)
-		});
-
-		if (response.ok) {
-			getAllRecipes();
-		} else {
-			console.error('Error updating recipe:', await response.text());
-		}
-	}
-
-	async function editNote(noteId: number, content: string) {
-		const response = await fetch(`/api/notes/${noteId}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ content })
-		});
-
-		if (response.ok) {
-			getAllRecipes();
-		} else {
-			console.error('Error updating note:', await response.text());
-		}
-	}
-
-	async function deleteNote(noteId: number) {
-		const response = await fetch(`/api/notes/${noteId}`, {
-			method: 'DELETE'
-		});
-
-		if (response.ok) {
-			getAllRecipes();
-		} else {
-			console.error('Error deleting note:', await response.text());
-		}
-	}
-
-	async function addNote(recipeId: number) {
-		const response = await fetch(`/api/notes?recipeId=`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ content: $newNoteContent, recipeId })
-		});
-
-		if (response.ok) {
-			getAllRecipes();
-		} else {
-			console.error('Error adding note:', await response.text());
-		}
+	async function fetchAllRecipes() {
+		const allRecipes = await getAllRecipes();
+		recipes.set(allRecipes);
 	}
 
 	onMount(() => {
-		getAllRecipes();
+		fetchAllRecipes();
 	});
 
 	function handleEditRecipeSubmit(recipe: Recipe) {
-		editRecipe(recipe);
+		editRecipe(recipe).then(() => fetchAllRecipes());
 		isEditting.set(false);
 	}
 
 	function handleCancelEdit() {
 		isEditting.set(false);
+	}
+
+	function setIsShowingNotes(value: boolean) {
+		isShowingNotes.set(value);
+	}
+
+	function setNoteToBeEditted(value: number | undefined) {
+		noteToBeEditted.set(value);
+	}
+
+	function setNoteToBeDeleted(value: number | undefined) {
+		noteToBeDeleted.set(value);
+	}
+
+	function setIsConfirmingDelete(value: boolean) {
+		isConfirmingDelete.set(value);
+	}
+
+	function setIsAddingNote(value: boolean) {
+		isAddingNote.set(value);
+	}
+
+	function setNewNoteContent(value: string) {
+		newNoteContent.set(value);
+	}
+
+	function setIsEditting(value: boolean) {
+		isEditting.set(value);
 	}
 </script>
 
@@ -152,179 +91,30 @@
 								onCancel={handleCancelEdit}
 							/>
 						{:else}
-							<div class="flex items-center">
-								<p class="text-xl font-bold">{recipe.name}</p>
-								{#if recipe.source}
-									<Button variant="ghost" class="px-2 hover:bg-primary hover:opacity-60"
-										><a
-											aria-label="Link to source"
-											href={recipe.source}
-											target="_blank"
-											rel="noopener noreferrer"
-											><img src="/source.png" alt="Edit button" width={20} /></a
-										></Button
-									>
-								{/if}
-							</div>
-
-							<div class="flex flex-col gap-4">
-								<div>
-									<p class="text-lg underline underline-offset-4 font-semibold pb-2">Ingredients</p>
-									{#each recipe.ingredients as ingredient}
-										<p>• {ingredient.quantity} {ingredient.unit} {ingredient.name}</p>
-									{/each}
-								</div>
-
-								<div class="flex flex-col gap-4">
-									<p class="text-lg underline underline-offset-4 font-semibold">Instructions</p>
-									{#each recipe.directions as direction, index}
-										<p class="flex gap-2">
-											<span class="border rounded-full py-0 px-1.5 h-min">{index + 1}</span
-											>{direction}
-										</p>
-									{/each}
-								</div>
-							</div>
-
-							{#if $isShowingNotes}
-								<div>
-									<p class="text-lg underline underline-offset-4 font-semibold pb-2">Notes</p>
-									{#if recipe.notes && recipe.notes.length > 0 && recipe.notes[0].id}
-										<div class="flex flex-col gap-2">
-											{#each recipe.notes as note}
-												<div class="flex items-center gap-2">
-													{#if $noteToBeEditted === note.id}
-														<Input
-															type="text"
-															placeholder="Edit note..."
-															class="border border-primary rounded-lg p-2 w-full text-primary"
-															value={note.content}
-															on:input={(e) =>
-																(note.content = (e.target as HTMLInputElement).value)}
-														/>
-														<Button
-															variant="positive"
-															class="px-2"
-															on:click={() => {
-																editNote(note.id, note.content);
-																noteToBeEditted.set(undefined);
-															}}>Save</Button
-														>
-														<Button
-															variant="outline"
-															class="px-2 text-primary"
-															on:click={() => noteToBeEditted.set(undefined)}>Cancel</Button
-														>
-													{:else}
-														<p>• {note.content}</p>
-
-														{#if $noteToBeDeleted === note.id}
-															<div class="flex items-center gap-2">
-																<p>Delete note?</p>
-																<Button
-																	variant="destructive"
-																	class="px-2 h-2"
-																	on:click={() => {
-																		noteToBeDeleted.set(undefined);
-																		deleteNote(note.id);
-																	}}>Yes</Button
-																>
-																<Button
-																	class="px-2 text-primary h-2 bg-secondary hover:bg-secondary hover:opacity-90"
-																	on:click={() => noteToBeDeleted.set(undefined)}>No</Button
-																>
-															</div>
-														{:else}
-															<Button
-																class="px-2 text-primary h-2 bg-secondary hover:bg-secondary hover:opacity-90"
-																on:click={() => noteToBeEditted.set(note.id)}>Edit</Button
-															>
-															<Button
-																variant="destructive"
-																class="px-2 h-2"
-																on:click={() => noteToBeDeleted.set(note.id)}>Delete</Button
-															>
-														{/if}
-													{/if}
-												</div>
-											{/each}
-										</div>
-									{:else}
-										<p>No notes found.</p>
-									{/if}
-								</div>
-							{/if}
+							<RecipeDetails
+								{recipe}
+								{fetchAllRecipes}
+								isShowingNotes={$isShowingNotes}
+								noteToBeEditted={$noteToBeEditted}
+								{setNoteToBeEditted}
+								noteToBeDeleted={$noteToBeDeleted}
+								{setNoteToBeDeleted}
+							/>
 
 							<AlertDialog.Footer class="flex items-center gap-2">
-								{#if $isConfirmingDelete}
-									Do you really want to delete this recipe?
-									<AlertDialog.Cancel
-										class="p-0 bg-[#dc2626] w-min border-none rounded-lg"
-										on:click={() => {
-											deleteRecipe(recipe.id);
-											isConfirmingDelete.set(false);
-										}}
-										><Button variant="destructive" class="px-3">Yes</Button>
-									</AlertDialog.Cancel>
-									<Button
-										variant="outline"
-										class="px-3 text-primary"
-										on:click={() => isConfirmingDelete.set(false)}>No</Button
-									>
-								{:else if $isAddingNote}
-									<div class="flex gap-2 grow">
-										<Input
-											type="text"
-											placeholder="Add a note..."
-											class="border border-primary rounded-lg p-2 w-full text-primary"
-											on:input={(e) => newNoteContent.set((e.target as HTMLInputElement).value)}
-										/>
-										<Button
-											variant="positive"
-											class="px-2"
-											on:click={() => {
-												addNote(recipe.id);
-												isAddingNote.set(false);
-											}}>Add</Button
-										>
-										<Button
-											variant="outline"
-											class="px-2 text-primary"
-											on:click={() => isAddingNote.set(false)}>Cancel</Button
-										>
-									</div>
-								{:else}
-									<div class="flex justify-between w-full">
-										<div class="flex gap-2">
-											<Button
-												variant="outline"
-												class="px-2 text-primary"
-												on:click={() => {
-													if ($isShowingNotes === true) {
-														isShowingNotes.set(false);
-													} else {
-														isShowingNotes.set(true);
-													}
-												}}>{$isShowingNotes ? 'Hide' : 'Show'} notes</Button
-											><Button
-												variant="positive"
-												class="px-2"
-												on:click={() => isAddingNote.set(true)}>Add note</Button
-											>
-										</div>
-										<div class="flex gap-2">
-											<Button variant="outline" class="px-2" on:click={() => isEditting.set(true)}
-												><img src="/edit.png" alt="Edit button" width={20} /></Button
-											>
-											<Button
-												variant="destructive"
-												class="px-2"
-												on:click={() => isConfirmingDelete.set(true)}
-												><img src="/delete.png" alt="Delete button" width={20} /></Button
-											>
-										</div>
-									</div>
-								{/if}
+								<RecipeDetailsFooter
+									{recipe}
+									{fetchAllRecipes}
+									isConfirmingDelete={$isConfirmingDelete}
+									{setIsConfirmingDelete}
+									isAddingNote={$isAddingNote}
+									{setIsAddingNote}
+									newNoteContent={$newNoteContent}
+									{setNewNoteContent}
+									isShowingNotes={$isShowingNotes}
+									{setIsShowingNotes}
+									{setIsEditting}
+								/>
 							</AlertDialog.Footer>
 						{/if}
 					</AlertDialog.Content>
