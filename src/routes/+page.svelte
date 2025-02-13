@@ -10,7 +10,7 @@
 
 	let isConfirmingDelete = writable(false);
 	let isEditting = writable(false);
-	let isShowingNotes = writable(false);
+	let isShowingNotes = writable(true);
 	let isAddingNote = writable(false);
 	let newNoteContent = writable('');
 	let noteToBeDeleted = writable<number | undefined>();

@@ -12,9 +12,13 @@
 
 <div class="border border-border w-[250px] rounded-lg flex flex-col items-center hover:opacity-80">
 	{#if recipe.imageUrl}
-		<img src={recipe.imageUrl} alt={recipe.name} class="w-[250px] rounded-t-lg" />
+		<img src={recipe.imageUrl} alt={recipe.name} class="max-w-[250px] max-h-[250px] rounded-t-lg" />
 	{:else}
-		<img src="./placeholder_food.png" alt={recipe.name} class="w-[250px] rounded-t-lg" />
+		<img
+			src="./placeholder_food.png"
+			alt={recipe.name}
+			class="max-w-[250px] max-h-[250px] rounded-t-lg"
+		/>
 	{/if}
 
 	<div class="h-full min-h-[40px] flex items-center justify-center">
